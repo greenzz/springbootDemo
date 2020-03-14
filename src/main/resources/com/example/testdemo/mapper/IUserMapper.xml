@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.testdemo.mapper.IUserMapper">
+    <select id="queryUsersByAccount" parameterType="java.lang.String" resultType="com.example.testdemo.model.UserTO">
+        select u.id,u.user_account,u.password,u.nick_name,u.dept_no,d.dept_name,
+        u.phone_num,u.email_address,u.birth_day
+        from userinfo u
+        left join dept d on d.dept_no=u.dept_no
+        where u.user_account=#{userAccount,jdbcType=VARCHAR}
+    </select>
+    <select id="selectAllUser" resultType="com.example.testdemo.model.UserTO">
+        select a.id,a.user_account,a.password,a.nick_name,
+                a.dept_no,a.phone_num,a.email_address,a.birth_day
+        from userinfo a
+        where a.id>=#{startIndex,jdbcType=INTEGER} limit #{pageSize,jdbcType=INTEGER}
+    </select>
+    <select id="queryTotalRows" resultType="int">
+        select count(1) from ${dbName}
+    </select>
+    <insert id="addUserInfo" parameterType="com.example.testdemo.model.UserTO">
+        insert into userinfo
+        (user_account,
+        password,
+        phone_num,
+        dept_no,
+        birth_day,
+        nick_name,
+        email_address
+        )
+        values(
+        #{userAccount,jdbcType=VARCHAR},
+        #{password,jdbcType=VARCHAR},
+        #{phoneNum,jdbcType=NUMERIC},
+        #{deptNo,jdbcType=NUMERIC},
+        #{birthDay,jdbcType=VARCHAR},
+        #{nickName,jdbcType=VARCHAR},
+        #{emailAddress,jdbcType=VARCHAR}
+        )
+    </insert>
+    <insert id="batchAddUserInfo" parameterType="java.util.List">
+        insert into userinfo(
+        user_account,
+        password,
+        phone_num,
+        dept_no,
+        birth_day,
+        nick_name,
+        email_address
+        )
+        <foreach collection="list" item="item" index="index" separator="union all">
+            select
+            #{item.userAccount,jdbcType=VARCHAR},
+            #{item.password,jdbcType=VARCHAR},
+            #{item.phoneNum,jdbcType=NUMERIC},
+            #{item.deptNo,jdbcType=NUMERIC},
+            #{item.birthDay,jdbcType=VARCHAR},
+            #{item.nickName,jdbcType=VARCHAR},
+            #{item.emailAddress,jdbcType=VARCHAR}
+            from dual
+        </foreach>
+    </insert>
+    <update id="updateUserInfo" parameterType="com.example.testdemo.model.UserTO">
+        update userinfo
+        <trim prefix="set" suffixOverrides=",">
+            <if test="password!=null and password!='' ">password=#{password,jdbcType=VARCHAR},</if>
+            <if test="phoneNum!=null ">phoneNum=#{phoneNum,jdbcType=NUMERIC},</if>
+            <if test="deptNo!=null">deptNo=#{deptNo,jdbcType=NUMERIC},</if>
+            <if test="birthDay!=null">birthDay=#{birthDay,jdbcType=VARCHAR},</if>
+            <if test="nickName!=null and nickName!='' ">nickName=#{nickName,jdbcType=VARCHAR},</if>
+            <if test="emailAddress!=null and emailAddress!='' ">emailAddress=#{emailAddress,jdbcType=VARCHAR}</if>
+        </trim>
+        where user_account=#{userAccount,jdbcType=VARCHAR}
+    </update>
+
+    <update id="batchUpdateUserInfo" parameterType="java.util.List">
+        <foreach collection="list" separator=";" item="item" close=";">
+            update userinfo
+            <trim prefix="set" suffixOverrides=",">
+                <if test="password!=null and password!='' ">password=#{password,jdbcType=VARCHAR},</if>
+                <if test="phoneNum!=null ">phoneNum=#{phoneNum,jdbcType=NUMERIC},</if>
+                <if test="deptNo!=null">deptNo=#{deptNo,jdbcType=NUMERIC},</if>
+                <if test="birthDay!=null">birthDay=#{birthDay,jdbcType=VARCHAR},</if>
+                <if test="nickName!=null and nickName!='' ">nickName=#{nickName,jdbcType=VARCHAR},</if>
+                <if test="emailAddress!=null and emailAddress!='' ">emailAddress=#{emailAddress,jdbcType=VARCHAR}</if>
+            </trim>
+            where user_account=#{item.userAccount,jdbcType=VARCHAR}
+        </foreach>
+    </update>
+    <delete id="deleteUserInfo" parameterType="java.lang.String">
+        delete from userinfo where user_account=#{param1,jdbcType=VARCHAR}
+    </delete>
+
+    <delete id="batchDeleteUserInfo" parameterType="java.util.List">
+        delete from userinfo where user_accont in
+        <foreach collection="list" item="item" open="(" close=")" separator=",">
+            #{item,jdbcType=VARCHAR}
+        </foreach>
+    </delete>
+
+</mapper>
